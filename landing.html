@@ -619,6 +619,7 @@
     const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 
     let longPressTimeout = null;
+    const LONG_PRESS_DELAY = 700;
 
     function safeGetBool(key, defaultValue) {
       try {
@@ -693,18 +694,22 @@
       settingsOverlay.setAttribute("aria-hidden", "true");
     }
 
-    function startLongPress() {
+    function startLongPress(e) {
+      if (e) {
+        // Stop the "Copy / Share / Select all" menu and text selection
+        e.preventDefault();
+        e.stopPropagation();
+      }
       if (longPressTimeout) clearTimeout(longPressTimeout);
       longPressTimeout = setTimeout(() => {
         openSettingsOverlay();
-      }, 1800);
+      }, LONG_PRESS_DELAY);
     }
 
     function cancelLongPress() {
-      if (longPressTimeout) {
-        clearTimeout(longPressTimeout);
-        longPressTimeout = null;
-      }
+      if (!longPressTimeout) return;
+      clearTimeout(longPressTimeout);
+      longPressTimeout = null;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -721,7 +726,7 @@
 
       if (parentSettingsBtn) {
         parentSettingsBtn.addEventListener("mousedown", startLongPress);
-        parentSettingsBtn.addEventListener("touchstart", startLongPress);
+        parentSettingsBtn.addEventListener("touchstart", startLongPress, { passive: false });
         parentSettingsBtn.addEventListener("mouseup", cancelLongPress);
         parentSettingsBtn.addEventListener("mouseleave", cancelLongPress);
         parentSettingsBtn.addEventListener("touchend", cancelLongPress);
