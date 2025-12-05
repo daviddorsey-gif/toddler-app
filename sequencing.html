@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emoji Pattern Sequencing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #222;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    /* High contrast mode */
+    body.high-contrast {
+      background: #000;
+      color: #fdfdfd;
+    }
+
+    body.high-contrast .card,
+    body.high-contrast .reward-content {
+      background: #111;
+      color: #fff;
+      border: 2px solid #fff;
+      box-shadow: none;
+    }
+
+    body.high-contrast .option-btn,
+    body.high-contrast .control-button,
+    body.high-contrast button {
+      background: #fff;
+      color: #000;
+      border: 1px solid #000;
+    }
+
+    body.high-contrast .pattern-tile {
+      background: #222;
+      color: #fff;
+    }
+
+    body.high-contrast .pattern-tile.missing {
+      border-color: #fff;
+      background: #333;
+      color: #fff;
+    }
+
+    .child-greeting {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4a90e2;
+      margin-bottom: 8px;
+      text-align: left;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    body.high-contrast .child-greeting {
+      color: #fff;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: 1.6rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      margin-bottom: 12px;
+      font-size: 1rem;
+      color: #555;
+      text-align: center;
+    }
+
+    body.high-contrast .subtitle {
+      color: #ccc;
+    }
+
+    .stage-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .stage-button {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: none;
+      background: #e0e7ff;
+      color: #333;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .stage-button.active {
+      background: #4a90e2;
+      color: #fff;
+    }
+
+    .stage-button.locked {
+      background: #ddd;
+      color: #888;
+      cursor: default;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px 20px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .level-info {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .pattern-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pattern-tile {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    .pattern-tile.missing {
+      border: 3px dashed #4a90e2;
+      background: #e8f2ff;
+      font-size: 1.4rem;
+      color: #4a90e2;
+    }
+
+    .options {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .option-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      border: none;
+      background: #ffffff;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+    }
+
+    .option-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .option-btn.correct {
+      background: #d3f9d8;
+    }
+
+    .option-btn.wrong {
+      background: #ffe3e3;
+    }
+
+    .message {
+      min-height: 1.4em;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .controls {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .control-button {
+      padding: 6px 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      background: #4a90e2;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .control-button:hover {
+      background: #3a78c2;
+    }
+
+    .control-button:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .status-text {
+      margin-top: 4px;
+      font-size: 0.9rem;
+      color: #444;
+      min-height: 1.2em;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Sticker overlay */
+    .reward-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .reward-content {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 20px 22px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reward-emoji {
+      font-size: 2.2rem;
+    }
+
+    .sticker-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .sticker-item {
+      width: 70px;
+      padding: 6px 4px;
+      border-radius: 12px;
+      border: 2px solid #ccc;
+      background: #f7f7f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.75rem;
+    }
+
+    .sticker-item .sticker-emoji {
+      font-size: 1.6rem;
+    }
+
+    .sticker-item.earned {
+      border-color: #4caf50;
+      background: #e8f9e9;
+    }
+
+    .sticker-item.locked {
+      opacity: 0.5;
+    }
+
+    .sticker-label {
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="child-greeting" id="nameGreeting"></div>
+  <h1>Emoji Pattern Game</h1>
+  <p class="subtitle">What comes next in the pattern?</p>
+
+  <!-- Stage selector -->
+  <div class="stage-bar" id="stageBar" aria-label="Choose pattern stage"></div>
+
+  <div class="card">
+    <div class="level-info" id="level-info"></div>
+
+    <div class="pattern-row" id="pattern-row"></div>
+
+    <div class="options" id="options-row"></div>
+
+    <div class="message" id="message"></div>
+
+    <div class="controls">
+      <button class="control-button" id="homeBtn" type="button">Home</button>
+      <button class="control-button" id="prev-btn" type="button">Previous</button>
+      <button class="control-button" id="next-btn" type="button">Next</button>
+      <button class="control-button" id="restart-btn" type="button">Restart Stage</button>
+      <button class="control-button" id="stickerBookBtn" type="button">Sticker Book</button>
+      <button class="control-button" id="soundToggleBtn" type="button">Sound: On</button>
+    </div>
+
+    <div id="status" class="status-text" aria-live="polite"></div>
+  </div>
+
+  <!-- Sticker Book overlay ONLY -->
+  <div
+    id="stickerBookOverlay"
+    class="reward-overlay hidden"
+    aria-hidden="true"
+  >
+    <div class="reward-content">
+      <div class="reward-emoji">📘</div>
+      <h2 class="reward-title">Sticker Book</h2>
+      <p class="reward-message">
+        You earn a sticker for each stage you finish.
+      </p>
+      <div id="stickerList" class="sticker-list"></div>
+      <button
+        id="stickerCloseBtn"
+        class="control-button"
+        type="button"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ---------- STAGES + PATTERNS ----------
+    const sequencingStages = [
+      {
+        id: "seq-stage1",
+        name: "Stage 1",
+        label: "AB patterns",
+        type: "AB",
+        puzzles: [
+          {
+            id: "s1-p1",
+            sequence: ["🐶","🐱","🐶","🐱","?"],
+            answer: "🐶",
+            options: ["🐶","🐰","🐸"]
+          },
+          {
+            id: "s1-p2",
+            sequence: ["🍎","🍌","🍎","🍌","?"],
+            answer: "🍎",
+            options: ["🍇","🍎","🍓"]
+          },
+          {
+            id: "s1-p3",
+            sequence: ["🚗","🚌","🚗","🚌","?"],
+            answer: "🚗",
+            options: ["🚲","🚗","🚕"]
+          }
+        ]
+      },
+      {
+        id: "seq-stage2",
+        name: "Stage 2",
+        label: "AAB patterns",
+        type: "AAB",
+        puzzles: [
+          {
+            id: "s2-p1",
+            sequence: ["🐶","🐶","🐱","🐶","🐶","🐱","?"],
+            answer: "🐶",
+            options: ["🐱","🐶","🐰"]
+          },
+          {
+            id: "s2-p2",
+            sequence: ["🍎","🍎","🍌","🍎","🍎","🍌","?"],
+            answer: "🍎",
+            options: ["🍌","🍎","🍇"]
+          },
+          {
+            id: "s2-p3",
+            sequence: ["⭐","⭐","🌙","⭐","⭐","🌙","?"],
+            answer: "⭐",
+            options: ["☁️","🌙","⭐"]
+          }
+        ]
+      },
+      {
+        id: "seq-stage3",
+        name: "Stage 3",
+        label: "ABC patterns",
+        type: "ABC",
+        puzzles: [
+          {
+            id: "s3-p1",
+            sequence: ["🐶","🐱","🐭","🐶","🐱","🐭","?"],
+            answer: "🐶",
+            options: ["🐭","🐶","🐱"]
+          },
+          {
+            id: "s3-p2",
+            sequence: ["🚗","🚌","🚲","🚗","🚌","🚲","?"],
+            answer: "🚗",
+            options: ["🚲","🚗","🚌"]
+          },
+          {
+            id: "s3-p3",
+            sequence: ["🍎","🍌","🍇","🍎","🍌","🍇","?"],
+            answer: "🍎",
+            options: ["🍇","🍎","🍌"]
+          }
+        ]
+      },
+      {
+        id: "seq-stage4",
+        name: "Stage 4",
+        label: "Mixed patterns",
+        type: "mixed",
+        puzzles: [
+          {
+            id: "s4-p1",
+            sequence: ["🐟","🐟","🐙","🐟","🐟","🐙","?"],
+            answer: "🐟",
+            options: ["🐙","🐢","🐟"]
+          },
+          {
+            id: "s4-p2",
+            sequence: ["🔺","🔺","🟥","🔺","🔺","🟥","?"],
+            answer: "🔺",
+            options: ["🔵","🔺","🟥"]
+          },
+          {
+            id: "s4-p3",
+            sequence: ["💚","💙","💚","💛","💚","💙","?"],
+            answer: "💚",
+            options: ["💚","💙","💛"]
+          }
+        ]
+      }
+    ];
+
+    const STAGE_STICKER_EMOJIS = ["🐾","⭐","🍎","🌈"];
+    const KEY_SEQ_PROGRESS = "emojiProgress_sequencing_v2";
+    const SOUND_KEY = "emojiApp_soundEnabled";
+    const CONTRAST_KEY = "emojiApp_highContrastMode";
+
+    const sounds = {
+      success: new Audio("sounds/success.wav"),
+      error: new Audio("sounds/error.wav"),
+      stage: new Audio("sounds/stage_complete.wav")
+    };
+
+    let soundEnabled = true;
+
+    function loadSoundSetting() {
+      try {
+        const raw = localStorage.getItem(SOUND_KEY);
+        if (raw === null) return true;
+        return raw === "true";
+      } catch {
+        return true;
+      }
+    }
+
+    function saveSoundSetting() {
+      try {
+        localStorage.setItem(SOUND_KEY, String(soundEnabled));
+      } catch {}
+    }
+
+    function updateSoundToggleUI() {
+      if (!soundToggleBtn) return;
+      soundToggleBtn.textContent = soundEnabled ? "Sound: On" : "Sound: Off";
+    }
+
+    function playSound(name) {
+      if (!soundEnabled) return;
+      const audio = sounds[name];
+      if (!audio) return;
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      } catch {}
+    }
+
+    // ---------- Progress state ----------
+    let seqProgress = {};
+    let currentStageIndex = 0;
+    let currentPuzzleIndex = 0;
+    let answered = false;
+
+    // ---------- DOM ----------
+    const stageBar = document.getElementById("stageBar");
+    const patternRow = document.getElementById("pattern-row");
+    const optionsRow = document.getElementById("options-row");
+    const messageEl = document.getElementById("message");
+    const levelInfoEl = document.getElementById("level-info");
+    const statusEl = document.getElementById("status");
+
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const restartBtn = document.getElementById("restart-btn");
+    const soundToggleBtn = document.getElementById("soundToggleBtn");
+    const stickerBookBtn = document.getElementById("stickerBookBtn");
+    const stickerBookOverlay = document.getElementById("stickerBookOverlay");
+    const stickerList = document.getElementById("stickerList");
+    const stickerCloseBtn = document.getElementById("stickerCloseBtn");
+    const homeBtn = document.getElementById("homeBtn");
+
+    // ---------- Greeting ----------
+    function applyChildGreeting(name) {
+      const el = document.getElementById("nameGreeting");
+      if (!el) return;
+      el.textContent = name ? `🐻 Hi, ${name}!` : "";
+    }
+
+    // ---------- Init ----------
+    document.addEventListener("DOMContentLoaded", () => {
+      // High contrast
+      try {
+        const raw = localStorage.getItem(CONTRAST_KEY);
+        if (raw === "true") {
+          document.body.classList.add("high-contrast");
+        }
+      } catch {}
+
+      // Greeting
+      const savedName = localStorage.getItem("childName") || "";
+      applyChildGreeting(savedName);
+
+      // Home button → landing
+      if (homeBtn) {
+        homeBtn.addEventListener("click", () => {
+          window.location.href = "landing.html";
+        });
+      }
+
+      // Sound
+      soundEnabled = loadSoundSetting();
+      updateSoundToggleUI();
+      if (soundToggleBtn) {
+        soundToggleBtn.addEventListener("click", () => {
+          soundEnabled = !soundEnabled;
+          saveSoundSetting();
+          updateSoundToggleUI();
+        });
+      }
+
+      loadSeqProgress();
+      buildStageButtons();
+      setStage(0);
+
+      prevBtn.addEventListener("click", goToPrevPuzzle);
+      nextBtn.addEventListener("click", goToNextPuzzle);
+      restartBtn.addEventListener("click", restartStage);
+
+      if (stickerBookBtn && stickerBookOverlay && stickerList && stickerCloseBtn) {
+        stickerBookBtn.addEventListener("click", () => {
+          renderStickerBook();
+          showStickerBookOverlay();
+        });
+        stickerCloseBtn.addEventListener("click", hideStickerBookOverlay);
+      }
+    });
+
+    // ---------- Progress helpers ----------
+    function loadSeqProgress() {
+      try {
+        const raw = localStorage.getItem(KEY_SEQ_PROGRESS);
+        if (raw) {
+          seqProgress = JSON.parse(raw);
+        } else {
+          initialiseSeqProgress();
+        }
+      } catch {
+        initialiseSeqProgress();
+      }
+    }
+
+    function initialiseSeqProgress() {
+      seqProgress = {};
+      sequencingStages.forEach((stage, index) => {
+        seqProgress[stage.id] = {
+          unlocked: index === 0,
+          completedPuzzles: {}
+        };
+      });
+      saveSeqProgress();
+    }
+
+    function saveSeqProgress() {
+      try {
+        localStorage.setItem(KEY_SEQ_PROGRESS, JSON.stringify(seqProgress));
+      } catch {}
+    }
+
+    function isStageUnlocked(stageId) {
+      const s = seqProgress[stageId];
+      return s && s.unlocked;
+    }
+
+    function markStageUnlocked(stageId) {
+      if (!seqProgress[stageId]) {
+        seqProgress[stageId] = { unlocked: true, completedPuzzles: {} };
+      } else {
+        seqProgress[stageId].unlocked = true;
+      }
+      saveSeqProgress();
+    }
+
+    function markPuzzleCompleted(stageId, puzzleId) {
+      if (!seqProgress[stageId]) {
+        seqProgress[stageId] = { unlocked: false, completedPuzzles: {} };
+      }
+      if (!seqProgress[stageId].completedPuzzles) {
+        seqProgress[stageId].completedPuzzles = {};
+      }
+
+      if (seqProgress[stageId].completedPuzzles[puzzleId]) return;
+
+      seqProgress[stageId].completedPuzzles[puzzleId] = true;
+      saveSeqProgress();
+
+      const stageIndex = sequencingStages.findIndex((s) => s.id === stageId);
+      const stage = sequencingStages[stageIndex];
+
+      const allDone = stage.puzzles.every(
+        (p) => seqProgress[stageId].completedPuzzles[p.id]
+      );
+      if (!allDone) return;
+
+      // Stage finished: sound + status; no popup
+      playSound("stage");
+
+      const isLastStage = stageIndex === sequencingStages.length - 1;
+      if (isLastStage) {
+        statusEl.textContent = "You finished all the patterns in this game! 🎉";
+      } else {
+        const nextStageIndex = stageIndex + 1;
+        const nextStage = sequencingStages[nextStageIndex];
+        if (nextStage && !isStageUnlocked(nextStage.id)) {
+          markStageUnlocked(nextStage.id);
+        }
+        statusEl.textContent = `${nextStage.name} unlocked! 🎉`;
+        buildStageButtons();
+      }
+    }
+
+    // ---------- Stage / puzzle navigation ----------
+    function buildStageButtons() {
+      stageBar.innerHTML = "";
+      sequencingStages.forEach((stage, index) => {
+        const btn = document.createElement("button");
+        btn.className = "stage-button";
+        btn.textContent = stage.name;
+        btn.title = stage.label;
+
+        const unlocked = isStageUnlocked(stage.id);
+        if (!unlocked) btn.classList.add("locked");
+        if (index === currentStageIndex) btn.classList.add("active");
+
+        btn.addEventListener("click", () => {
+          if (!isStageUnlocked(stage.id)) {
+            statusEl.textContent = "Finish earlier stages to unlock this one.";
+            return;
+          }
+          setStage(index);
+        });
+
+        stageBar.appendChild(btn);
+      });
+      updateStageButtonActive();
+    }
+
+    function updateStageButtonActive() {
+      const buttons = stageBar.querySelectorAll(".stage-button");
+      buttons.forEach((btn, idx) => {
+        if (idx === currentStageIndex) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+    }
+
+    function setStage(index) {
+      if (index < 0 || index >= sequencingStages.length) return;
+      currentStageIndex = index;
+      currentPuzzleIndex = 0;
+      statusEl.textContent = "";
+      updateStageButtonActive();
+      renderCurrentPuzzle();
+    }
+
+    function getCurrentStage() {
+      return sequencingStages[currentStageIndex];
+    }
+
+    function getCurrentPuzzle() {
+      return getCurrentStage().puzzles[currentPuzzleIndex];
+    }
+
+    function restartStage() {
+      currentPuzzleIndex = 0;
+      statusEl.textContent = "";
+      renderCurrentPuzzle();
+    }
+
+    function goToNextPuzzle() {
+      const stage = getCurrentStage();
+      currentPuzzleIndex = (currentPuzzleIndex + 1) % stage.puzzles.length;
+      statusEl.textContent = "";
+      renderCurrentPuzzle();
+    }
+
+    function goToPrevPuzzle() {
+      const stage = getCurrentStage();
+      currentPuzzleIndex =
+        (currentPuzzleIndex - 1 + stage.puzzles.length) % stage.puzzles.length;
+      statusEl.textContent = "";
+      renderCurrentPuzzle();
+    }
+
+    // ---------- Render ----------
+    function renderCurrentPuzzle() {
+      const stage = getCurrentStage();
+      const puzzle = getCurrentPuzzle();
+      answered = false;
+      messageEl.textContent = "";
+
+      levelInfoEl.textContent = `${stage.name} – Puzzle ${
+        currentPuzzleIndex + 1
+      } of ${stage.puzzles.length}`;
+
+      patternRow.innerHTML = "";
+      puzzle.sequence.forEach((item) => {
+        const tile = document.createElement("div");
+        tile.className = "pattern-tile";
+        if (item === "?") {
+          tile.classList.add("missing");
+          tile.textContent = "?";
+        } else {
+          tile.textContent = item;
+        }
+        patternRow.appendChild(tile);
+      });
+
+      optionsRow.innerHTML = "";
+      puzzle.options.forEach((emoji) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = emoji;
+        btn.addEventListener("click", () => handleAnswer(btn, emoji));
+        optionsRow.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(button, chosenEmoji) {
+      if (answered) return;
+
+      const stage = getCurrentStage();
+      const puzzle = getCurrentPuzzle();
+      const isCorrect = chosenEmoji === puzzle.answer;
+      answered = true;
+
+      if (isCorrect) {
+        playSound("success");
+        button.classList.add("correct");
+        messageEl.textContent = "Great job! That's the right emoji.";
+
+        const tiles = patternRow.querySelectorAll(".pattern-tile.missing");
+        tiles.forEach((tile) => {
+          tile.textContent = puzzle.answer;
+          tile.classList.remove("missing");
+        });
+
+        markPuzzleCompleted(stage.id, puzzle.id);
+      } else {
+        playSound("error");
+        button.classList.add("wrong");
+        messageEl.textContent = "Try again!";
+        answered = false;
+        setTimeout(() => {
+          button.classList.remove("wrong");
+        }, 600);
+      }
+    }
+
+    // ---------- Sticker book ----------
+    function getCompletedSeqStageIndexes() {
+      const completed = [];
+      sequencingStages.forEach((stage, index) => {
+        const record = seqProgress[stage.id];
+        if (!record || !record.completedPuzzles) return;
+        const allDone = stage.puzzles.every(
+          (p) => record.completedPuzzles[p.id]
+        );
+        if (allDone) {
+          completed.push(index);
+        }
+      });
+      return completed;
+    }
+
+    function renderStickerBook() {
+      if (!stickerList) return;
+
+      const completedStages = new Set(getCompletedSeqStageIndexes());
+      stickerList.innerHTML = "";
+
+      sequencingStages.forEach((stage, index) => {
+        const emoji = STAGE_STICKER_EMOJIS[index] || "⭐";
+        const earned = completedStages.has(index);
+
+        const item = document.createElement("div");
+        item.className =
+          "sticker-item " + (earned ? "earned" : "locked");
+        item.innerHTML = `
+          <div class="sticker-emoji">${emoji}</div>
+          <div class="sticker-label">Stage ${index + 1}</div>
+        `;
+        stickerList.appendChild(item);
+      });
+    }
+
+    function showStickerBookOverlay() {
+      if (!stickerBookOverlay) return;
+      stickerBookOverlay.classList.remove("hidden");
+      stickerBookOverlay.style.display = "flex";
+      stickerBookOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function hideStickerBookOverlay() {
+      if (!stickerBookOverlay) return;
+      stickerBookOverlay.classList.add("hidden");
+      stickerBookOverlay.style.display = "none";
+      stickerBookOverlay.setAttribute("aria-hidden", "true");
+    }
+  </script>
+</body>
+</html>

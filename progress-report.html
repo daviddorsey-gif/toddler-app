@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Progress Report – Toddler Puzzle App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --card-bg: #ffffff;
+      --accent: #4a90e2;
+      --accent-soft: #e0e7ff;
+      --text-main: #222;
+      --text-muted: #666;
+      --success: #4caf50;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: var(--text-main);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    /* High contrast mode */
+    body.high-contrast {
+      background: #000;
+      color: #fdfdfd;
+    }
+
+    body.high-contrast .module-card {
+      background: #111;
+      color: #fff;
+      border: 2px solid #fff;
+      box-shadow: none;
+    }
+
+    body.high-contrast .tag {
+      background: #333;
+      color: #fff;
+    }
+
+    body.high-contrast .back-link {
+      color: #fff;
+    }
+
+    .app {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.7rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    body.high-contrast .subtitle {
+      color: #ccc;
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .tag {
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .back-link {
+      text-decoration: none;
+      font-size: 0.9rem;
+      color: var(--accent);
+    }
+
+    .modules-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 720px) {
+      .modules-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .module-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 14px 14px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .module-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .module-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    body.high-contrast .module-subtitle {
+      color: #ddd;
+    }
+
+    .overall-progress-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .progress-bar {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #e2e2e2;
+      overflow: hidden;
+    }
+
+    body.high-contrast .progress-bar {
+      background: #444;
+    }
+
+    .progress-bar-fill {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+      transition: width 0.3s ease;
+    }
+
+    .overall-percent {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .stage-list {
+      margin-top: 6px;
+      border-top: 1px solid #eee;
+      padding-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    body.high-contrast .stage-list {
+      border-top-color: #444;
+    }
+
+    .stage-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.83rem;
+    }
+
+    .stage-name {
+      color: var(--text-main);
+    }
+
+    body.high-contrast .stage-name {
+      color: #fff;
+    }
+
+    .stage-status {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stage-status-text {
+      color: var(--text-muted);
+    }
+
+    body.high-contrast .stage-status-text {
+      color: #ddd;
+    }
+
+    .stage-status-text.complete {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .badge-check {
+      font-size: 1rem;
+    }
+
+    .footnote {
+      margin-top: 16px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    body.high-contrast .footnote {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Progress Report</h1>
+      <p class="subtitle">
+        Summary of puzzles completed on this device.
+      </p>
+      <div class="top-controls">
+        <span class="tag">Parent view</span>
+        <a href="landing.html" class="back-link">← Back to games</a>
+      </div>
+    </header>
+
+    <section class="modules-grid" id="modulesGrid">
+    </section>
+
+    <p class="footnote">
+      This report shows progress saved in your browser only.
+      Clearing the browser data or using a different device will reset these
+      numbers. Online sync can be added later.
+    </p>
+  </div>
+
+  <script>
+    const MODULE_CONFIGS = [
+      {
+        id: "matching",
+        title: "Match & Move",
+        description: "Drag pictures to matching shadows.",
+        storageKey: "puzzleProgress_v4",
+        stages: [
+          { id: "stage1", name: "Stage 1", totalPuzzles: 3 },
+          { id: "stage2", name: "Stage 2", totalPuzzles: 4 },
+          { id: "stage3", name: "Stage 3", totalPuzzles: 5 },
+          { id: "stage4", name: "Stage 4", totalPuzzles: 6 }
+        ]
+      },
+      {
+        id: "sequencing",
+        title: "Pattern Sequencing",
+        description: "Tap what comes next in the pattern.",
+        storageKey: "emojiProgress_sequencing_v2",
+        stages: [
+          { id: "seq-stage1", name: "Stage 1 (AB)", totalPuzzles: 3 },
+          { id: "seq-stage2", name: "Stage 2 (AAB)", totalPuzzles: 3 },
+          { id: "seq-stage3", name: "Stage 3 (ABC)", totalPuzzles: 3 },
+          { id: "seq-stage4", name: "Stage 4 (Mixed)", totalPuzzles: 3 }
+        ]
+      },
+      {
+        id: "grid",
+        title: "Grid Puzzles",
+        description: "Swap tiles to match the top picture.",
+        storageKey: "emojiProgress_grid_v2",
+        stages: [
+          { id: "grid-stage1", name: "Stage 1 (2×2)", totalPuzzles: 3 },
+          { id: "grid-stage2", name: "Stage 2 (3×3)", totalPuzzles: 3 },
+          { id: "grid-stage3", name: "Stage 3 (4×4)", totalPuzzles: 3 }
+        ]
+      }
+    ];
+
+    function safeLoadProgress(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function summarizeModule(config) {
+      const rawProgress = safeLoadProgress(config.storageKey);
+
+      let totalPuzzles = 0;
+      let completedPuzzles = 0;
+      const stageSummaries = [];
+
+      config.stages.forEach((stg) => {
+        totalPuzzles += stg.totalPuzzles;
+
+        const stageRecord = rawProgress[stg.id];
+        const completedForStage =
+          stageRecord && stageRecord.completedPuzzles
+            ? Object.keys(stageRecord.completedPuzzles).length
+            : 0;
+
+        completedPuzzles += Math.min(completedForStage, stg.totalPuzzles);
+
+        const isComplete = completedForStage >= stg.totalPuzzles;
+
+        stageSummaries.push({
+          id: stg.id,
+          name: stg.name,
+          total: stg.totalPuzzles,
+          completed: Math.min(completedForStage, stg.totalPuzzles),
+          isComplete
+        });
+      });
+
+      const percent =
+        totalPuzzles === 0
+          ? 0
+          : Math.round((completedPuzzles / totalPuzzles) * 100);
+
+      return {
+        config,
+        totalPuzzles,
+        completedPuzzles,
+        percent,
+        stages: stageSummaries
+      };
+    }
+
+    function renderProgressReport() {
+      const container = document.getElementById("modulesGrid");
+      container.innerHTML = "";
+
+      MODULE_CONFIGS.forEach((config) => {
+        const summary = summarizeModule(config);
+
+        const card = document.createElement("article");
+        card.className = "module-card";
+
+        const title = document.createElement("div");
+        title.className = "module-title";
+        title.textContent = summary.config.title;
+
+        const subtitle = document.createElement("div");
+        subtitle.className = "module-subtitle";
+        subtitle.textContent = summary.config.description;
+
+        const label = document.createElement("div");
+        label.className = "overall-progress-label";
+        label.textContent = "Overall progress";
+
+        const bar = document.createElement("div");
+        bar.className = "progress-bar";
+
+        const fill = document.createElement("div");
+        fill.className = "progress-bar-fill";
+        fill.style.width = summary.percent + "%";
+        bar.appendChild(fill);
+
+        const percentText = document.createElement("div");
+        percentText.className = "overall-percent";
+        percentText.textContent = `${summary.completedPuzzles} of ${summary.totalPuzzles} puzzles · ${summary.percent}%`;
+
+        const stageList = document.createElement("div");
+        stageList.className = "stage-list";
+
+        summary.stages.forEach((stg) => {
+          const row = document.createElement("div");
+          row.className = "stage-row";
+
+          const nameEl = document.createElement("div");
+          nameEl.className = "stage-name";
+          nameEl.textContent = stg.name;
+
+          const status = document.createElement("div");
+          status.className = "stage-status";
+
+          const text = document.createElement("span");
+          text.className =
+            "stage-status-text" + (stg.isComplete ? " complete" : "");
+          text.textContent = `${stg.completed}/${stg.total}`;
+
+          status.appendChild(text);
+
+          if (stg.isComplete) {
+            const check = document.createElement("span");
+            check.className = "badge-check";
+            check.textContent = "✅";
+            status.appendChild(check);
+          }
+
+          row.appendChild(nameEl);
+          row.appendChild(status);
+          stageList.appendChild(row);
+        });
+
+        card.appendChild(title);
+        card.appendChild(subtitle);
+        card.appendChild(label);
+        card.appendChild(bar);
+        card.appendChild(percentText);
+        card.appendChild(stageList);
+
+        container.appendChild(card);
+      });
+    }
+
+    function applyContrastFromSettings() {
+      try {
+        const raw = localStorage.getItem("emojiApp_highContrastMode");
+        if (raw === "true") {
+          document.body.classList.add("high-contrast");
+        } else {
+          document.body.classList.remove("high-contrast");
+        }
+      } catch {}
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyContrastFromSettings();
+      renderProgressReport();
+    });
+  </script>
+</body>
+</html>

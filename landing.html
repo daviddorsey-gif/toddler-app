@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Toddler Puzzle App – Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --card-bg: #ffffff;
+      --accent: #4a90e2;
+      --accent-soft: #e0e7ff;
+      --text-main: #222;
+      --text-muted: #666;
+      --danger: #d9534f;
+      --high-contrast-bg: #000;
+      --high-contrast-card: #111;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      color: var(--text-main);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    body.quiet-mode {
+      background: #eef1f6;
+    }
+
+    body.high-contrast {
+      background: var(--high-contrast-bg);
+      color: #fdfdfd;
+    }
+
+    body.high-contrast .card,
+    body.high-contrast .module-card,
+    body.high-contrast .settings-panel {
+      background: var(--high-contrast-card);
+      border: 2px solid #fff;
+      box-shadow: none;
+    }
+
+    body.high-contrast .module-button {
+      background: #fff;
+      color: #000;
+    }
+
+    .app {
+      max-width: 960px;
+      width: 100%;
+    }
+
+    header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .mascot {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #ffe8c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    .header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .greeting {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .sub-greeting {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .modules-wrapper {
+      margin-top: 8px;
+    }
+
+    .modules-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modules-title-row h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .modules-title-row .hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .module-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    @media (min-width: 720px) {
+      .module-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    .module-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    body.quiet-mode .module-card {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+    }
+
+    .module-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.16);
+    }
+
+    body.quiet-mode .module-card:hover {
+      transform: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.09);
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .module-emoji {
+      font-size: 1.8rem;
+    }
+
+    .module-name {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .module-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .module-button {
+      margin-top: 4px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .module-button:hover {
+      background: #3a78c2;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    }
+
+    body.quiet-mode .module-button:hover {
+      transform: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    }
+
+    .module-button span.arrow {
+      font-size: 1rem;
+    }
+
+    .bottom-row {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;        /* changed: stack vertically */
+      align-items: flex-start;       /* hint under button, left aligned */
+      gap: 4px;
+    }
+
+    .parent-settings-btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: none;
+      background: #ddd;
+      color: #333;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .parent-settings-btn-icon {
+      font-size: 1rem;
+    }
+
+    .parent-settings-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .footer {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Settings overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .overlay.visible {
+      display: flex;
+    }
+
+    .settings-panel {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .settings-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .settings-badge {
+      font-size: 0.8rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .settings-section-title {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .field-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .field-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .text-input {
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    body.high-contrast .text-input {
+      background: #000;
+      color: #fff;
+      border-color: #fff;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      gap: 10px;
+    }
+
+    .toggle-label {
+      font-size: 0.9rem;
+    }
+
+    .toggle-button {
+      min-width: 90px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: #ddd;
+      color: #333;
+    }
+
+    .toggle-button.on {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .settings-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .settings-btn {
+      flex: 1;
+      padding: 7px 9px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: #eee;
+      color: #333;
+    }
+
+    .settings-btn.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .settings-btn.danger {
+      background: #fbe1df;
+      color: var(--danger);
+    }
+
+    .settings-footer-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .settings-close-btn {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: #ddd;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="mascot" aria-hidden="true">🐻</div>
+      <div class="header-text">
+        <div class="greeting" id="greetingText">Hi there!</div>
+        <div class="sub-greeting" id="subGreetingText">
+          Choose a game to start playing.
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="modules-wrapper">
+        <div class="modules-title-row">
+          <h2>Choose a game</h2>
+          <div class="hint">Best for ages 3–6</div>
+        </div>
+
+        <div class="module-grid">
+          <!-- Match & Move -->
+          <article class="module-card">
+            <div class="module-header">
+              <div class="module-emoji">🧩</div>
+              <div class="module-name">Match &amp; Move</div>
+            </div>
+            <div class="module-desc">
+              Drag each picture to its matching shadow.
+            </div>
+            <button class="module-button" data-target="matching.html">
+              Play Match &amp; Move
+              <span class="arrow">→</span>
+            </button>
+          </article>
+
+          <!-- Sequencing -->
+          <article class="module-card">
+            <div class="module-header">
+              <div class="module-emoji">🔢</div>
+              <div class="module-name">Pattern Sequencing</div>
+            </div>
+            <div class="module-desc">
+              Tap which emoji comes next in the pattern.
+            </div>
+            <button class="module-button" data-target="sequencing.html">
+              Play Sequencing
+              <span class="arrow">→</span>
+            </button>
+          </article>
+
+          <!-- Grid Puzzle -->
+          <article class="module-card">
+            <div class="module-header">
+              <div class="module-emoji">🔳</div>
+              <div class="module-name">Grid Puzzles</div>
+            </div>
+            <div class="module-desc">
+              Swap tiles until your puzzle matches the top.
+            </div>
+            <button class="module-button" data-target="grid.html">
+              Play Grid Puzzles
+              <span class="arrow">→</span>
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section class="bottom-row">
+        <button
+          id="parentSettingsBtn"
+          class="parent-settings-btn"
+          type="button"
+        >
+          <span class="parent-settings-btn-icon">⚙️</span>
+          Parent Settings
+        </button>
+        <div class="parent-settings-hint">
+          Press and hold for parent controls.
+        </div>
+      </section>
+
+      <div class="footer">
+        Toddler Puzzle App &copy; 2025 · Presented by Dorsey Media Group LLC
+      </div>
+    </main>
+  </div>
+
+  <!-- Parent Settings Overlay -->
+  <div id="settingsOverlay" class="overlay" aria-hidden="true">
+    <div class="settings-panel" role="dialog" aria-modal="true">
+      <div class="settings-header">
+        <div class="settings-title">Parent Settings</div>
+        <div class="settings-badge">Long press unlocked</div>
+      </div>
+
+      <div class="settings-section-title">Child info</div>
+      <div class="field-row">
+        <label class="field-label" for="childNameInput">Child's name</label>
+        <input
+          id="childNameInput"
+          class="text-input"
+          type="text"
+          maxlength="20"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="settings-section-title">Display &amp; sound</div>
+      <div class="toggle-row">
+        <div class="toggle-label">Quiet mode</div>
+        <button id="quietToggle" class="toggle-button" type="button">
+          Off
+        </button>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">High contrast mode</div>
+        <button id="contrastToggle" class="toggle-button" type="button">
+          Off
+        </button>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle-label">Sound</div>
+        <button id="soundToggle" class="toggle-button" type="button">
+          On
+        </button>
+      </div>
+
+      <div class="settings-section-title">More</div>
+      <div class="settings-actions">
+        <button
+          id="progressBtn"
+          class="settings-btn primary"
+          type="button"
+        >
+          View Progress Report
+        </button>
+        <button
+          id="resetBtn"
+          class="settings-btn danger"
+          type="button"
+        >
+          Reset Progress
+        </button>
+      </div>
+
+      <div class="settings-section-title">Game Instructions (click the triangle next to the game name)</div>
+
+    <div class="parent-instructions">
+
+      <details class="instruction-group">
+        <summary><strong>Matching Game (Emoji Match)</strong></summary>
+        <p>Your child matches each emoji piece to its matching outline on the board. When all pieces are placed correctly, the stage completes.</p>
+        <p><strong>How to play:</strong></p>
+        <ol>
+          <li>Select a stage from the main menu.</li>
+          <li>Your child taps or drags emoji pieces to their matching outline.</li>
+          <li>Correct pieces snap into place.</li>
+          <li>When all matches are complete, a reward message appears.</li>
+        </ol>
+        <p><strong>Skills practiced:</strong> visual matching, focus, fine motor control.</p>
+      </details>
+
+      <details class="instruction-group">
+        <summary><strong>Puzzle Game (Emoji Puzzle Grid)</strong></summary>
+        <p>Your child assembles a simple grid-based puzzle by placing pieces in their correct positions to complete the picture.</p>
+        <p><strong>How to play:</strong></p>
+        <ol>
+          <li>Choose a puzzle stage.</li>
+          <li>Your child taps or moves pieces into the correct arrangement.</li>
+          <li>When the picture is completed correctly, the reward message appears.</li>
+        </ol>
+        <p><strong>Skills practiced:</strong> problem-solving, planning, spatial reasoning.</p>
+      </details>
+
+      <details class="instruction-group">
+        <summary><strong>Pattern Sequencing (Emoji Patterns)</strong></summary>
+        <p>Your child views a repeating emoji pattern and selects which emoji should come next.</p>
+        <p><strong>How to play:</strong></p>
+        <ol>
+          <li>A pattern appears with the final emoji missing.</li>
+          <li>Your child picks the emoji that correctly continues the sequence.</li>
+          <li>Correct answers move to the next pattern.</li>
+        </ol>
+        <p><strong>Skills practiced:</strong> early logic, recognizing patterns, prediction.</p>
+      </details>
+
+    </div>
+
+      <div class="settings-footer-row">
+        <button
+          id="closeSettingsBtn"
+          class="settings-close-btn"
+          type="button"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const NAME_KEY = "emojiApp_childName";
+    const QUIET_KEY = "emojiApp_quietMode";
+    const CONTRAST_KEY = "emojiApp_highContrastMode";
+    const SOUND_KEY = "emojiApp_soundEnabled";
+
+    const greetingText = document.getElementById("greetingText");
+    const subGreetingText = document.getElementById("subGreetingText");
+    const moduleButtons = document.querySelectorAll(".module-button");
+
+    const parentSettingsBtn = document.getElementById("parentSettingsBtn");
+    const settingsOverlay = document.getElementById("settingsOverlay");
+    const childNameInput = document.getElementById("childNameInput");
+    const quietToggle = document.getElementById("quietToggle");
+    const contrastToggle = document.getElementById("contrastToggle");
+    const soundToggle = document.getElementById("soundToggle");
+    const progressBtn = document.getElementById("progressBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+
+    let longPressTimeout = null;
+
+    function safeGetBool(key, defaultValue) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw === null) return defaultValue;
+        return raw === "true";
+      } catch {
+        return defaultValue;
+      }
+    }
+
+    function safeSetBool(key, value) {
+      try {
+        localStorage.setItem(key, String(value));
+      } catch {}
+    }
+
+    function safeGetString(key) {
+      try {
+        return localStorage.getItem(key) || "";
+      } catch {
+        return "";
+      }
+    }
+
+    function safeSetString(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch {}
+    }
+
+    function applyInitialState() {
+      const name = safeGetString(NAME_KEY);
+      const quiet = safeGetBool(QUIET_KEY, false);
+      const contrast = safeGetBool(CONTRAST_KEY, false);
+      const sound = safeGetBool(SOUND_KEY, true);
+
+      if (name) {
+        greetingText.textContent = `Hi, ${name}!`;
+        subGreetingText.textContent = "Choose a game to start playing.";
+      } else {
+        greetingText.textContent = "Hi there!";
+        subGreetingText.textContent =
+          "Parents can add a name in Settings.";
+      }
+
+      document.body.classList.toggle("quiet-mode", quiet);
+      document.body.classList.toggle("high-contrast", contrast);
+
+      childNameInput.value = name;
+      setToggle(quietToggle, quiet);
+      setToggle(contrastToggle, contrast);
+      setToggle(soundToggle, sound);
+    }
+
+    function setToggle(btn, on) {
+      if (!btn) return;
+      btn.classList.toggle("on", on);
+      btn.textContent = on ? "On" : "Off";
+    }
+
+    function openSettingsOverlay() {
+      if (!settingsOverlay) return;
+      settingsOverlay.classList.add("visible");
+      settingsOverlay.setAttribute("aria-hidden", "false");
+      applyInitialState();
+    }
+
+    function closeSettingsOverlay() {
+      if (!settingsOverlay) return;
+      settingsOverlay.classList.remove("visible");
+      settingsOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function startLongPress() {
+      if (longPressTimeout) clearTimeout(longPressTimeout);
+      longPressTimeout = setTimeout(() => {
+        openSettingsOverlay();
+      }, 1800);
+    }
+
+    function cancelLongPress() {
+      if (longPressTimeout) {
+        clearTimeout(longPressTimeout);
+        longPressTimeout = null;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyInitialState();
+
+      moduleButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = btn.getAttribute("data-target");
+          if (target) {
+            window.location.href = target;
+          }
+        });
+      });
+
+      if (parentSettingsBtn) {
+        parentSettingsBtn.addEventListener("mousedown", startLongPress);
+        parentSettingsBtn.addEventListener("touchstart", startLongPress);
+        parentSettingsBtn.addEventListener("mouseup", cancelLongPress);
+        parentSettingsBtn.addEventListener("mouseleave", cancelLongPress);
+        parentSettingsBtn.addEventListener("touchend", cancelLongPress);
+        parentSettingsBtn.addEventListener("touchcancel", cancelLongPress);
+      }
+
+      if (quietToggle) {
+        quietToggle.addEventListener("click", () => {
+          const on = !quietToggle.classList.contains("on");
+          setToggle(quietToggle, on);
+          safeSetBool(QUIET_KEY, on);
+          document.body.classList.toggle("quiet-mode", on);
+        });
+      }
+
+      if (contrastToggle) {
+        contrastToggle.addEventListener("click", () => {
+          const on = !contrastToggle.classList.contains("on");
+          setToggle(contrastToggle, on);
+          safeSetBool(CONTRAST_KEY, on);
+          document.body.classList.toggle("high-contrast", on);
+        });
+      }
+
+      if (soundToggle) {
+        soundToggle.addEventListener("click", () => {
+          const on = !soundToggle.classList.contains("on");
+          setToggle(soundToggle, on);
+          safeSetBool(SOUND_KEY, on);
+        });
+      }
+
+      if (childNameInput) {
+        childNameInput.addEventListener("change", () => {
+          const name = childNameInput.value.trim();
+          safeSetString(NAME_KEY, name);
+          if (name) {
+            greetingText.textContent = `Hi, ${name}!`;
+            subGreetingText.textContent =
+              "Choose a game to start playing.";
+          } else {
+            greetingText.textContent = "Hi there!";
+            subGreetingText.textContent =
+              "Parents can add a name in Settings.";
+          }
+        });
+      }
+
+      if (progressBtn) {
+        progressBtn.addEventListener("click", () => {
+          window.location.href = "progress-report.html";
+        });
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          const confirmReset = window.confirm(
+            "Reset all puzzle progress on this device? This cannot be undone."
+          );
+          if (!confirmReset) return;
+
+          try {
+            localStorage.removeItem("puzzleProgress_v4");
+            localStorage.removeItem("emojiProgress_sequencing_v2");
+            localStorage.removeItem("emojiProgress_grid_v2");
+          } catch {}
+          alert("Progress has been reset. Stages will be locked again.");
+        });
+      }
+
+      if (closeSettingsBtn) {
+        closeSettingsBtn.addEventListener("click", () => {
+          closeSettingsOverlay();
+        });
+      }
+
+      if (settingsOverlay) {
+        settingsOverlay.addEventListener("click", (e) => {
+          if (e.target === settingsOverlay) {
+            closeSettingsOverlay();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

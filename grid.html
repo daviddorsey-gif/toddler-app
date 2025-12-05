@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emoji Grid Puzzle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #222;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    body.high-contrast {
+      background: #000;
+      color: #fdfdfd;
+    }
+
+    .child-greeting {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4a90e2;
+      margin-bottom: 6px;
+      text-align: left;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    body.high-contrast .child-greeting {
+      color: #ffffff;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.6rem;
+      text-align: center;
+    }
+
+    .stage-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .stage-button {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      background: #e0e7ff;
+      color: #333;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+
+    .stage-button.active {
+      background: #4a90e2;
+      color: #fff;
+    }
+
+    .stage-label {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      text-align: center;
+      color: #555;
+    }
+
+    body.high-contrast .stage-label {
+      color: #ddd;
+    }
+
+    .section-title {
+      margin-top: 8px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .board {
+      --cols: 2;
+      --rows: 2;
+      display: grid;
+      grid-template-columns: repeat(var(--cols), 80px);
+      grid-template-rows: repeat(var(--rows), 80px);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .tile {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+    }
+
+    .tile.selected {
+      outline: 3px solid #4a90e2;
+      background: #e6f0ff;
+      transform: scale(1.03);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Only used when the entire puzzle is solved */
+    .tile.solved {
+      background: #d3f9d8;
+    }
+
+    .board.target .tile {
+      cursor: default;
+      box-shadow: none;
+      background: #fafafa;
+    }
+
+    body.high-contrast .tile {
+      background: #222;
+      color: #fff;
+      box-shadow: none;
+    }
+
+    body.high-contrast .board.target .tile {
+      background: #111;
+    }
+
+    body.high-contrast .tile.solved {
+      background: #0f5132;
+    }
+
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #4a90e2;
+      color: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    button:hover {
+      background: #3a78c2;
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    body.high-contrast button {
+      background: #fff;
+      color: #000;
+      box-shadow: none;
+    }
+
+    #message {
+      margin-top: 10px;
+      min-height: 1.4em;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .puzzle-info {
+      font-size: 0.9rem;
+      text-align: center;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    body.high-contrast .puzzle-info {
+      color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="child-greeting" id="nameGreeting"></div>
+  <h1>Emoji Grid Puzzle</h1>
+
+  <div class="stage-bar" id="stageBar"></div>
+  <div class="stage-label" id="stageLabel"></div>
+
+  <div class="puzzle-info" id="puzzleInfo"></div>
+
+  <div class="section-title">Target pattern</div>
+  <div class="board target" id="target-board"></div>
+
+  <div class="section-title">Your puzzle</div>
+  <div class="board" id="puzzle-board"></div>
+
+  <div class="controls">
+    <button id="homeBtn" type="button">Home</button>
+    <button id="shuffleBtn" type="button">Shuffle</button>
+    <button id="nextPuzzleBtn" type="button">Next Puzzle</button>
+    <button id="restartStageBtn" type="button">Restart Stage</button>
+  </div>
+
+  <div id="message"></div>
+
+  <script>
+    const CONTRAST_KEY = "emojiApp_highContrastMode";
+
+    // ---- Stage + puzzle data ----
+    const gridStages = [
+      {
+        id: "grid-stage1",
+        name: "Stage 1",
+        label: "2 × 2 animals",
+        puzzles: [
+          {
+            id: "s1p1",
+            rows: 2,
+            cols: 2,
+            pattern: ["🐶","🐱","🐭","🐰"]
+          },
+          {
+            id: "s1p2",
+            rows: 2,
+            cols: 2,
+            pattern: ["🐱","🐶","🐰","🐭"]
+          },
+          {
+            id: "s1p3",
+            rows: 2,
+            cols: 2,
+            pattern: ["🐰","🐭","🐶","🐱"]
+          }
+        ]
+      },
+      {
+        id: "grid-stage2",
+        name: "Stage 2",
+        label: "2 × 2 fruits",
+        puzzles: [
+          {
+            id: "s2p1",
+            rows: 2,
+            cols: 2,
+            pattern: ["🍎","🍌","🍇","🍓"]
+          },
+          {
+            id: "s2p2",
+            rows: 2,
+            cols: 2,
+            pattern: ["🍒","🍓","🍎","🍉"]
+          },
+          {
+            id: "s2p3",
+            rows: 2,
+            cols: 2,
+            pattern: ["🍊","🍋","🍓","🍇"]
+          }
+        ]
+      },
+      {
+        id: "grid-stage3",
+        name: "Stage 3",
+        label: "3 × 3 mixed",
+        puzzles: [
+          {
+            id: "s3p1",
+            rows: 3,
+            cols: 3,
+            pattern: [
+              "🐶","🐱","🐶",
+              "🐭","🐰","🐭",
+              "🐱","🐶","🐱"
+            ]
+          },
+          {
+            id: "s3p2",
+            rows: 3,
+            cols: 3,
+            pattern: [
+              "🍎","🍌","🍎",
+              "🍓","🍇","🍓",
+              "🍊","🍋","🍊"
+            ]
+          },
+          {
+            id: "s3p3",
+            rows: 3,
+            cols: 3,
+            pattern: [
+              "⭐","🌙","⭐",
+              "☁️","⭐","☁️",
+              "⭐","🌙","⭐"
+            ]
+          }
+        ]
+      },
+      {
+        id: "grid-stage4",
+        name: "Stage 4",
+        label: "3 × 3 challenge",
+        puzzles: [
+          {
+            id: "s4p1",
+            rows: 3,
+            cols: 3,
+            pattern: [
+              "🍎","🍏","🍎",
+              "🍓","🍒","🍓",
+              "🍊","🍋","🍊"
+            ]
+          },
+          {
+            id: "s4p2",
+            rows: 3,
+            cols: 3,
+            pattern: [
+              "🚗","🚕","🚗",
+              "🚌","🚙","🚌",
+              "🚲","🛴","🚲"
+            ]
+          },
+          {
+            id: "s4p3",
+            rows: 3,
+            cols: 3,
+            pattern: [
+              "💚","💙","💚",
+              "💛","💜","💛",
+              "🧡","❤️","🧡"
+            ]
+          }
+        ]
+      }
+    ];
+
+    const nameGreetingEl = document.getElementById("nameGreeting");
+    const stageBar = document.getElementById("stageBar");
+    const stageLabelEl = document.getElementById("stageLabel");
+    const puzzleInfoEl = document.getElementById("puzzleInfo");
+    const targetBoard = document.getElementById("target-board");
+    const puzzleBoard = document.getElementById("puzzle-board");
+    const homeBtn = document.getElementById("homeBtn");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const nextPuzzleBtn = document.getElementById("nextPuzzleBtn");
+    const restartStageBtn = document.getElementById("restartStageBtn");
+    const messageEl = document.getElementById("message");
+
+    let currentStageIndex = 0;
+    let currentPuzzleIndex = 0;
+    let tiles = [];
+    let selectedTile = null;
+
+    function getSavedName() {
+      const keys = ["childName", "kidName", "playerName"];
+      for (const k of keys) {
+        try {
+          const v = localStorage.getItem(k);
+          if (v) return v;
+        } catch (e) {}
+      }
+      return "";
+    }
+
+    function applyChildGreeting() {
+      const name = getSavedName();
+      if (nameGreetingEl && name) {
+        nameGreetingEl.textContent = `🐻 Hi, ${name}!`;
+      }
+    }
+
+    function buildStageButtons() {
+      stageBar.innerHTML = "";
+      gridStages.forEach((stage, index) => {
+        const btn = document.createElement("button");
+        btn.className = "stage-button";
+        btn.textContent = stage.name;
+        if (index === currentStageIndex) btn.classList.add("active");
+        btn.addEventListener("click", () => {
+          currentStageIndex = index;
+          currentPuzzleIndex = 0;
+          renderCurrentPuzzle();
+          updateStageButtons();
+        });
+        stageBar.appendChild(btn);
+      });
+    }
+
+    function updateStageButtons() {
+      const buttons = stageBar.querySelectorAll(".stage-button");
+      buttons.forEach((btn, idx) => {
+        if (idx === currentStageIndex) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+    }
+
+    function getCurrentStage() {
+      return gridStages[currentStageIndex];
+    }
+
+    function getCurrentPuzzle() {
+      return getCurrentStage().puzzles[currentPuzzleIndex];
+    }
+
+    function renderCurrentPuzzle() {
+      const stage = getCurrentStage();
+      const puzzle = getCurrentPuzzle();
+
+      stageLabelEl.textContent = stage.label;
+      puzzleInfoEl.textContent = `${stage.name} – Puzzle ${currentPuzzleIndex + 1} of ${stage.puzzles.length}`;
+
+      const rows = puzzle.rows;
+      const cols = puzzle.cols;
+
+      targetBoard.style.setProperty("--rows", rows);
+      targetBoard.style.setProperty("--cols", cols);
+      puzzleBoard.style.setProperty("--rows", rows);
+      puzzleBoard.style.setProperty("--cols", cols);
+
+      // Build target board
+      targetBoard.innerHTML = "";
+      puzzle.pattern.forEach((emoji) => {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.textContent = emoji;
+        targetBoard.appendChild(tile);
+      });
+
+      // Build shuffled puzzle board
+      const shuffled = [...puzzle.pattern];
+      do {
+        shuffleArray(shuffled);
+      } while (arraysEqual(shuffled, puzzle.pattern));
+
+      puzzleBoard.innerHTML = "";
+      tiles = [];
+      selectedTile = null;
+
+      shuffled.forEach((emoji, index) => {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        tile.textContent = emoji;
+        tile.dataset.index = String(index);
+        tile.addEventListener("click", () => handleTileClick(tile));
+        tiles.push(tile);
+        puzzleBoard.appendChild(tile);
+      });
+
+      tiles.forEach((t) => t.classList.remove("solved"));
+      updateMessage("Tap two tiles to swap them.");
+    }
+
+    function handleTileClick(tile) {
+      if (isSolved()) return;
+
+      if (!selectedTile) {
+        selectedTile = tile;
+        tile.classList.add("selected");
+      } else if (selectedTile === tile) {
+        tile.classList.remove("selected");
+        selectedTile = null;
+      } else {
+        const tmp = selectedTile.textContent;
+        selectedTile.textContent = tile.textContent;
+        tile.textContent = tmp;
+
+        selectedTile.classList.remove("selected");
+        selectedTile = null;
+
+        checkSolved();
+      }
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function arraysEqual(a, b) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
+    }
+
+    function getCurrentPattern() {
+      return tiles.map((tile) => tile.textContent);
+    }
+
+    function isSolved() {
+      const target = getCurrentPuzzle().pattern;
+      return arraysEqual(getCurrentPattern(), target);
+    }
+
+    function checkSolved() {
+      if (isSolved()) {
+        tiles.forEach((tile) => tile.classList.add("solved"));
+        updateMessage("Great job! Puzzle complete 🎉");
+      } else {
+        updateMessage("Keep going! Swap tiles until it matches the top.");
+      }
+    }
+
+    function updateMessage(text) {
+      messageEl.textContent = text;
+    }
+
+    // ---- Init ----
+    (function init() {
+      // Contrast
+      try {
+        if (localStorage.getItem(CONTRAST_KEY) === "true") {
+          document.body.classList.add("high-contrast");
+        }
+      } catch (e) {}
+
+      applyChildGreeting();
+      buildStageButtons();
+      renderCurrentPuzzle();
+
+      homeBtn.addEventListener("click", () => {
+        window.location.href = "landing.html";
+      });
+
+      shuffleBtn.addEventListener("click", () => {
+        renderCurrentPuzzle();
+      });
+
+      nextPuzzleBtn.addEventListener("click", () => {
+        const stage = getCurrentStage();
+        currentPuzzleIndex = (currentPuzzleIndex + 1) % stage.puzzles.length;
+        renderCurrentPuzzle();
+      });
+
+      restartStageBtn.addEventListener("click", () => {
+        currentPuzzleIndex = 0;
+        renderCurrentPuzzle();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kids Puzzle App (3–6)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Greeting styling -->
+  <style>
+    .child-greeting {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #4a90e2;
+      margin-bottom: 6px;
+    }
+
+    body.high-contrast .child-greeting {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <!-- Static fallback greeting so something ALWAYS shows -->
+      <div class="child-greeting" id="nameGreeting">🐻 Hi there!</div>
+
+      <h1>Match & Move Puzzles</h1>
+
+      <!-- Stage selector bar -->
+      <div class="stage-bar" id="stageBar" aria-label="Choose difficulty stage">
+        <!-- JS will insert stage buttons here -->
+      </div>
+
+      <p class="subtitle">Drag the picture to the matching shadow</p>
+    </header>
+
+    <main class="app-main">
+      <!-- Target (shadow) area -->
+      <section class="board board-targets" id="targetBoard" aria-label="Puzzle targets">
+        <!-- JS will insert targets here -->
+      </section>
+
+      <!-- Piece area -->
+      <section class="board board-pieces" id="pieceBoard" aria-label="Puzzle pieces">
+        <!-- JS will insert pieces here -->
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <button id="resetBtn" class="control-button" type="button">Replay</button>
+      <button id="nextBtn" class="control-button" type="button">Next Puzzle</button>
+      <button id="nextStageBtn" class="control-button hidden" type="button"></button>
+      <button id="homeBtn" class="control-button" type="button">Home</button>
+      <button id="soundToggleBtn" class="control-button" type="button">Sound: On</button>
+      <div id="status" class="status-text" aria-live="polite"></div>
+    </footer>
+  </div>
+
+  <!-- Reward overlay for stage completion (unchanged) -->
+  <div id="rewardOverlay" class="reward-overlay hidden" aria-hidden="true">
+    <div class="reward-content">
+      <div class="reward-emoji">🎉🎉🎉</div>
+      <h2 id="rewardTitle">Great job!</h2>
+      <p id="rewardMessage">You finished this stage.</p>
+      <button
+        id="rewardPrimaryBtn"
+        class="control-button"
+        type="button"
+        onclick="hideRewardOverlay()"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+
+  <!-- Your game logic -->
+  <script src="game.js?v=4"></script>
+
+  <!-- Single hook script: name + contrast (no duplicates) -->
+  <script>
+    console.log("Matching: hook script loaded");
+
+    const NAME_KEY = "emojiApp_childName";
+    const CONTRAST_KEY = "emojiApp_highContrastMode";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("Matching: DOMContentLoaded fired");
+
+      // 1) Apply high contrast from landing
+      try {
+        const contrastOn = localStorage.getItem(CONTRAST_KEY) === "true";
+        if (contrastOn) {
+          document.body.classList.add("high-contrast");
+          console.log("Matching: high-contrast ON");
+        } else {
+          console.log("Matching: high-contrast OFF");
+        }
+      } catch (e) {
+        console.error("Error applying contrast", e);
+      }
+
+      // 2) Personalised greeting using stored name (if available)
+      try {
+        const el = document.getElementById("nameGreeting");
+        if (!el) return;
+
+        const storedName = localStorage.getItem(NAME_KEY);
+        const name = storedName && storedName.trim() ? storedName.trim() : "";
+
+        if (name) {
+          el.textContent = `🐻 Hi, ${name}!`;
+        } else {
+          // fallback stays as "Hi there!"
+          el.textContent = "🐻 Hi there!";
+        }
+        console.log("Matching: greeting set to:", el.textContent);
+      } catch (e) {
+        console.error("Error applying name", e);
+      }
+    });
+  </script>
+</body>
+</html>
