@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Emoji Jigsaw</title>
+  <link rel="stylesheet" href="emoji-jigsaw.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">🧩</div>
+        <div>
+          <div class="title">Emoji Jigsaw</div>
+          <div class="subtitle" id="subtitle">Drag pieces into place</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <label class="select">
+          <span>Pieces</span>
+          <select id="sizeSelect">
+            <option value="3">3×3</option>
+            <option value="4" selected>4×4</option>
+            <option value="5">5×5</option>
+          </select>
+        </label>
+
+        <button class="btn" id="shuffleBtn" type="button">Shuffle</button>
+        <button class="btn" id="resetBtn" type="button">Reset</button>
+        <button class="btn primary" id="newPuzzleBtn" type="button">New Puzzle</button>
+        <button class="btn" type="button" onclick="window.location.href='index.html'">Back</button>
+
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="board-wrap">
+        <div class="board-header">
+          <div class="progress">
+            <div class="progress-label"><span id="progressText">0/0</span> placed</div>
+            <div class="progress-bar" aria-hidden="true">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+
+          <div class="preview">
+            <div class="preview-label">Preview</div>
+            <canvas id="previewCanvas" class="preview-canvas" aria-hidden="true"></canvas>
+          </div>
+        </div>
+
+        <div class="jigsaw-stage">
+          <div class="puzzle-col">
+            <div id="puzzleArea" class="puzzle-area" aria-label="Puzzle area">
+              <canvas id="guideCanvas" class="guide-canvas" aria-hidden="true"></canvas>
+            </div>
+          </div>
+
+          <aside class="tray-wrap" aria-label="Piece tray">
+            <div class="tray-title">
+              <div>Pieces</div>
+              <div class="tray-note">Drag into the puzzle area.</div>
+            </div>
+            <div id="pieceTray" class="piece-tray"></div>
+          </aside>
+        </div>
+
+        <canvas id="sourceCanvas" class="hidden" aria-hidden="true"></canvas>
+      </section>
+    </main>
+
+    <!-- Completion overlay (uses hidden attribute so it cannot “accidentally” show) -->
+    <div id="winOverlay" class="overlay" hidden aria-hidden="true">
+      <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+        <div class="overlay-emoji">🎉</div>
+        <h2 id="winTitle">Puzzle Complete!</h2>
+        <p id="winMsg">Nice work.</p>
+        <div class="overlay-actions">
+          <button class="btn" id="closeWinBtn" type="button">Close</button>
+          <button class="btn primary" id="nextWinBtn" type="button">New Puzzle</button>
+        </div>
+      </div>
+      <canvas id="confettiCanvas" class="confetti" aria-hidden="true"></canvas>
+    </div>
+  </div>
+
+  <script src="jigsaw.js"></script>
+</body>
+</html>

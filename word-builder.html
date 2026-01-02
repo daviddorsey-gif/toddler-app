@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emoji Word Builder</title>
+  <style>
+    :root{
+            --bg:#071a2f;                 /* deep navy */
+            --panel:#0b2a47;              /* card surface */
+            --panel-soft:#0f3a5f;
+
+            /* Text */
+            --text:#ffffff;
+            --muted:#b6d4f2;
+
+            /* Accent colors */
+            --accent:#00b4ff;             /* primary action blue */
+            --accent-soft:#7dd3fc;
+            --success:#22c55e;
+            --gold:#facc15;
+
+            /* Interactive elements */
+            --slot:#0f3a5f;
+            --slot-border:#38bdf8;
+
+            --tile:#0b2a47;
+            --tile-border:#facc15;
+
+            /* Guides */
+            --guide:rgba(255,255,255,.35);
+
+            --shadow:0 20px 40px rgba(0,0,0,.45);
+            --radius:22px;
+        }
+
+    
+    body{
+      margin:0;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 40px;
+    }
+    header{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
+            margin:20px 0 24px;
+            text-align:center;
+
+            /* critical */
+            background:transparent;
+            box-shadow:none;
+            padding:0;
+            border-radius:0;
+            }
+
+    .title{
+        font-size:44px;
+        font-weight:900;
+        line-height:1.05;
+        letter-spacing:.5px;
+        color:#ffffff;
+        text-shadow:0 4px 0 rgba(0,0,0,.35);
+        margin:0;
+    }   
+            
+    .tile.wrong{
+        transform:translateX(-3px);
+        filter:brightness(1.2);
+        }
+
+    .stage{
+        font-size:18px !important;
+        font-weight:800 !important;
+        color:#7dd3fc !important;
+        margin-top:4px !important;
+    }
+    .card{
+        background:
+            linear-gradient(
+            180deg,
+            #0f3a5f 0%,
+            #0b2a47 100%
+            );
+        border-radius:28px;
+        box-shadow:var(--shadow);
+        padding:22px 22px 30px;
+            }
+
+    .topRow{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      margin:12px 0 18px;
+    }
+    .emoji{
+      font-size:104px;
+      line-height:1;
+      margin-bottom:14px;
+      filter:saturate(1.2) drop-shadow(0 10px 0 rgba(0,0,0,.35));
+    }
+    .prompt{
+      text-align:center;
+      color:var(--muted);
+      font-size:14px;
+      margin:6px 0 14px;
+    }
+    .slots{
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin:0 0 18px;
+    }
+
+    /* Slot with guide (dotted preview) behind the filled letter */
+    .slot{
+        width:78px;
+        height:78px;
+        border-radius:20px;
+        background:var(--slot);
+        border:3px dashed var(--slot-border);
+        display:grid;
+        place-items:center;
+        position:relative;
+        user-select:none;
+        overflow:hidden;
+    }
+    .slot .guide{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      font-size:38px;
+      font-weight:900;
+      letter-spacing:.5px;
+      color:transparent;
+
+      /* “dotted outline” effect */
+      -webkit-text-stroke: 2px var(--guide);
+      text-stroke: 2px var(--guide);
+      opacity:.65;
+      pointer-events:none;
+    }
+    .slot .fill{
+      position:relative;
+      z-index:1;
+      font-size:38px;
+      font-weight:900;
+      color:var(--accent);
+    }
+    .slot.filled{
+        border-style:solid;
+        border-color:var(--success);
+        background:#083344; /* very light cyan */
+            }
+
+    .bank{
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+      padding-top:10px;
+      border-top:1px solid rgba(0,0,0,.06);
+    }
+    .tile{
+      width:84px;
+      height:84px;
+      border-radius:18px;
+      background:linear-gradient(
+        180deg,
+        #0ea5e9 0%,
+        #0284c7 100%
+      );
+      border:3px solid var(--tile-border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:42px;
+      font-weight:900;
+      color:#ffffff;
+      cursor:pointer;
+      user-select:none;
+      touch-action:manipulation;
+      box-shadow:
+        0 8px 0 rgba(0,0,0,.35);
+      transition: opacity 600ms ease, transform 600ms ease, filter 600ms ease;  
+        }
+
+    .tile:active{ 
+        transform:translateY(4px);
+        box-shadow: 
+        0 4px 0 rgba(0,0,0,.35); 
+        }
+    .tile.used{
+      opacity:.35;
+      transform:scale(.92);
+      pointer-events:none;
+    }
+    .tile.irrelevant{
+        opacity: 0.22;
+        transform: scale(0.88);
+        filter: saturate(0.9);
+        pointer-events: none;
+    }
+    @keyframes slotPulse {
+        0%   { transform: scale(1); }
+        40%  { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    .slot.pulse{
+        animation: slotPulse 260ms ease;
+    }
+    .controls{
+      display:flex;
+      justify-content:center;
+      gap:16px;
+      margin-top:28px;
+    }
+    .btn{
+      border:none;
+      border-radius:999px;
+      padding:16px 30px;
+      font-size: 18px;
+      font-weight:900;
+      cursor:pointer;
+      min-width: 140px;
+      background:var(--accent);
+      color:#fff;
+    }
+    .btn.secondary{
+      background:#111827;
+    }
+
+    /* High contrast hook */
+    body.high-contrast{
+      --bg:#000;
+      --panel:#0b0b0b;
+      --text:#fff;
+      --muted:#cfcfcf;
+      --tile:#000;
+      --tile-border:#fff;
+      --slot:#000;
+      --slot-border:#fff;
+      --accent:#00d4ff;
+      --guide:#ffffff;
+      --shadow:none;
+    }
+
+    /* HARD KILL: remove any panel behind the title area */
+    header,
+    header *{
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    }
+
+    header::before,
+    header::after{
+    content: none !important;
+    display: none !important;
+    }
+
+    /* If your header sits in a wrapper that’s painted, neutralize common offenders */
+    .wrap,
+    .topRow{
+    background: transparent !important;
+    box-shadow: none !important;
+    }
+
+    .reward-overlay{
+        position:fixed;
+        inset:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:rgba(3, 15, 30, 0.85);
+        z-index:9999;
+        background:rgba(2, 10, 22, 0.92);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .reward-emoji{
+        font-size:72px;
+        margin-bottom:12px;
+        margin:0 0 10px;
+    }
+
+    .reward-title{
+        font-size:30px;
+        font-weight:900;
+        color:#ffffff;
+        margin-bottom:24px;
+        margin:0 0 22px;
+        text-shadow: 0 4px 0 rgba(0,0,0,.35);
+    }
+
+    .reward-content.centered{
+        width:min(520px, 92vw);
+        padding:34px 28px;
+        border-radius:28px;
+        text-align:center;
+
+        /* Solid + elevated so it “wins” */
+        background:linear-gradient(180deg, #0f3a5f 0%, #0b2a47 100%);
+        border:1px solid rgba(125, 211, 252, 0.25);
+        box-shadow:0 40px 90px rgba(0,0,0,.65);
+
+        /* Keep it crisp above blurred background */
+        position:relative;
+    }
+
+    .btn-primary{
+        background:linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+        color:#ffffff;
+        border:none;
+        border-radius:999px;
+        padding:14px 30px;
+        font-size:18px;
+        font-weight:900;
+        cursor:pointer;
+        box-shadow:0 8px 0 rgba(0,0,0,.35);
+    }
+
+    .btn-primary:active{
+        transform:translateY(4px);
+        box-shadow:0 4px 0 rgba(0,0,0,.35);
+    }
+
+    /* Confetti container inside the modal overlay */
+    .confetti{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    border-radius:28px; /* match your modal card */
+    }
+
+    /* Confetti pieces */
+    .confetti i{
+    position:absolute;
+    top:-12px;
+    width:10px;
+    height:16px;
+    border-radius:3px;
+    opacity:.95;
+    animation: confetti-fall 1100ms linear forwards;
+    transform: translateY(0) rotate(0deg);
+    }
+
+    /* Fall + slight drift */
+    @keyframes confetti-fall{
+    to{
+        transform: translateY(360px) rotate(720deg);
+        opacity:0;
+    }
+    }
+
+    /* Motion-safe */
+    @media (prefers-reduced-motion: reduce){
+    .confetti{ display:none !important; }
+    }
+
+
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+        <div class="title">Word Builder</div>
+        <div class="stage" id="stageLabel">Stage 1</div>
+        <div class="stage" id="levelLabel">Level 1</div>
+    </header>
+
+
+    <section class="card" aria-label="Word builder activity">
+      <div class="topRow">
+        <div class="emoji" id="emojiPrompt" aria-label="Emoji prompt">🐄</div>
+      </div>
+
+      <div class="prompt" id="promptText">Tap the letters to build the word.</div>
+
+      <div class="slots" id="slots" aria-label="Letter slots">
+        <!-- Example slots with dotted guides (COW) -->
+        <div class="slot" data-slot="0" aria-label="Slot 1">
+          <div class="guide" aria-hidden="true">C</div>
+          <div class="fill" aria-live="polite"></div>
+        </div>
+        <div class="slot" data-slot="1" aria-label="Slot 2">
+          <div class="guide" aria-hidden="true">O</div>
+          <div class="fill" aria-live="polite"></div>
+        </div>
+        <div class="slot" data-slot="2" aria-label="Slot 3">
+          <div class="guide" aria-hidden="true">W</div>
+          <div class="fill" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="bank" id="letterBank" aria-label="Letter choices">
+        <button class="tile" type="button" data-letter="C" aria-label="Letter C">C</button>
+        <button class="tile" type="button" data-letter="O" aria-label="Letter O">O</button>
+        <button class="tile" type="button" data-letter="W" aria-label="Letter W">W</button>
+      </div>
+
+      <div class="controls" aria-label="Controls">
+        <button class="btn secondary" id="resetWordBtn" type="button">Reset</button>
+        <button class="btn" id="nextBtn" type="button">Next</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="./word-builder.js" defer>
+    // Placeholder reset hook only (keeps guides, clears fills)
+    document.getElementById("resetWordBtn").addEventListener("click", () => {
+      const slots = document.querySelectorAll(".slot");
+      const tiles = document.querySelectorAll(".tile");
+      slots.forEach(s => {
+        s.querySelector(".fill").textContent = "";
+        s.classList.remove("filled");
+      });
+      tiles.forEach(t => t.classList.remove("used"));
+    });
+  </script>
+</body>
+</html>
